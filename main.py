@@ -248,8 +248,8 @@ def profile():
 
 @app.route("/", methods=["GET", "POST"])
 def dashboard():
-    date=get_current_date()
-    try:
+        date=get_current_date()
+    
         if request.method == "POST":
             village = request.form.get("village")
             date = request.form.get("date")
@@ -268,13 +268,10 @@ def dashboard():
         aqi_all = dict1.get('village_aqi_data', {})
         aqi = aqi_all.get(village)
         health_alert = get_health_alert_personal(aqi, 'general')
-        
+        #print(**dict1)
         # Ensure date is passed to the template
         return render_template("aqi.html", **dict1, health_alert=health_alert)
-    except Exception as e:
-        log_error(e)
-        flash("Error loading dashboard.", "danger")
-        return render_template("aqi.html",date=date)
+   
 
 @app.route('/coverage')
 def coverage():
