@@ -209,13 +209,18 @@ def profile():
             date = get_current_date()
             dict1 = get_aqi_data(date, village, mongo_uri=get_mongo_uri(),
                                  db_name="AQI_Project", collection_name="processed_data")
+            
+            # Handle case where get_aqi_data returns None
+            if dict1 is None:
+                dict1 = {}
+            
             aqi_all = dict1.get('village_aqi_data', {})
             aqi = aqi_all.get(village)
             health_alert = get_health_alert_personal(aqi, 'general')
             personalise = get_health_alert_personal(aqi, user['disease']) if user['disease'] else None
             note = get_notes_for_matching_aqi(session.get("user"), village)
             return render_template("user_profile.html", user=user, health_alert=health_alert,
-                                   personalise=personalise, **dict1, note=note)
+                                   personalise=personalise, **dict1, note=note, date=date)
         elif session.get("type") == "institution":
             inst = institutions_collection.find_one({"_id": ObjectId(session["institution"])})
             if not inst:
@@ -224,12 +229,17 @@ def profile():
             date = get_current_date()
             dict1 = get_aqi_data(date, village, mongo_uri=get_mongo_uri(),
                                  db_name="AQI_Project", collection_name="processed_data")
+            
+            # Handle case where get_aqi_data returns None
+            if dict1 is None:
+                dict1 = {}
+            
             aqi_all = dict1.get('village_aqi_data', {})
             aqi = aqi_all.get(village)
             personalise = get_health_alert_institution(aqi, 'general') if inst['institution_type'] else None
             institute_alert = get_health_alert_institution(aqi, inst['institution_type'])
             return render_template("institution_profile.html", inst=inst, **dict1,
-                                   institute_alert=institute_alert, personalise=personalise)
+                                   institute_alert=institute_alert, personalise=personalise, date=date)
         return redirect(url_for("login"))
     except Exception as e:
         log_error(e)
@@ -238,6 +248,7 @@ def profile():
 
 @app.route("/", methods=["GET", "POST"])
 def dashboard():
+    date=get_current_date()
     try:
         if request.method == "POST":
             village = request.form.get("village")
@@ -246,16 +257,24 @@ def dashboard():
         else:
             village = request.args.get("village", "Pune")
             date = request.args.get("date", get_current_date())
+
         dict1 = get_aqi_data(date, village, mongo_uri=get_mongo_uri(),
                              db_name="AQI_Project", collection_name="processed_data")
+        
+        # Handle case where get_aqi_data returns None
+        if dict1 is None:
+            dict1 = {}
+        
         aqi_all = dict1.get('village_aqi_data', {})
         aqi = aqi_all.get(village)
         health_alert = get_health_alert_personal(aqi, 'general')
+        
+        # Ensure date is passed to the template
         return render_template("aqi.html", **dict1, health_alert=health_alert)
     except Exception as e:
         log_error(e)
         flash("Error loading dashboard.", "danger")
-        return render_template("aqi.html")
+        return render_template("aqi.html",date=date)
 
 @app.route('/coverage')
 def coverage():
@@ -264,7 +283,12 @@ def coverage():
         village = "Pune"
         dict1 = get_aqi_data(date, village, mongo_uri=get_mongo_uri(),
                              db_name="AQI_Project", collection_name="processed_data")
-        return render_template('coverage.html', **dict1)
+            
+        # Handle case where get_aqi_data returns None
+        if dict1 is None:
+            dict1 = {}
+            
+        return render_template('coverage.html', **dict1, date=date)
     except Exception as e:
         log_error(e)
         flash("Error loading coverage page.", "danger")
@@ -292,6 +316,11 @@ def add_note_route():
         date = get_current_date()
         dict1 = get_aqi_data(date, village, mongo_uri=get_mongo_uri(),
                              db_name="AQI_Project", collection_name="processed_data")
+        
+        # Handle case where get_aqi_data returns None
+        if dict1 is None:
+            dict1 = {}
+        
         live_aqi = dict1.get("live_AQI", None)
         note_data = {
             "user_id": user_id,
@@ -366,6 +395,13 @@ def compare():
                                         db_name="AQI_Project", collection_name="processed_data")
             village2_data = get_aqi_data(get_current_date(), village2, mongo_uri=get_mongo_uri(),
                                         db_name="AQI_Project", collection_name="processed_data")
+            
+            # Handle case where get_aqi_data returns None
+            if village1_data is None:
+                village1_data = {}
+            if village2_data is None:
+                village2_data = {}
+            
             return render_template("compare.html", village1=village1_data, village2=village2_data)
         else:
             return render_template('compare_form.html')
