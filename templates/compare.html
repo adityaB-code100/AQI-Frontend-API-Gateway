@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 mt-8">
+  <h1 class="text-3xl font-bold text-center mb-8 text-indigo-700 dark:text-indigo-400">
+    <i class="fas fa-balance-scale mr-3"></i> Village AQI Comparison
+  </h1>
+
+  {% if village1 and village2 %}
+  <div class="bg-white rounded-xl shadow-lg p-6 mb-8 dark:bg-gray-800">
+    <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">
+      7-Day AQI Forecast Comparison
+    </h3>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <th class="py-3 px-4 text-left">Date</th>
+            <th class="py-3 px-4 text-left">{{ village1.village }}</th>
+            <th class="py-3 px-4 text-left">{{ village2.village }}</th>
+            <th class="py-3 px-4 text-left">Difference</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in range(7) %}
+          {% set date = village1.passing_data[i].date %}
+          {% set value1 = village1.passing_data[i].value %}
+          {% set value2 = village2.passing_data[i].value %}
+          {% set diff = value1 - value2 %}
+          <tr class="border-b border-gray-200 dark:border-gray-700">
+            <td class="py-3 px-4">{{ date }}</td>
+            <td class="py-3 px-4">{{ value1 }}</td>
+            <td class="py-3 px-4">{{ value2 }}</td>
+            <td class="py-3 px-4 font-medium
+              {% if diff > 0 %}text-red-600 dark:text-red-400
+              {% elif diff < 0 %}text-green-600 dark:text-green-400
+              {% else %}text-gray-500 dark:text-gray-400{% endif %}">
+              {{ "%+d"|format(diff) }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ✅ Pollutant Breakdown -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 dark:bg-gray-800">
+      <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{{ village1.village }} Pollutants</h3>
+      <ul>
+        {% for p in village1.pollutants %}
+        <li class="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+          <span>{{ p.name }}</span>
+          <span class="{{ p.class }} text-white px-2 py-1 rounded-lg">{{ p.value }} ({{ p.status }})</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-lg p-6 dark:bg-gray-800">
+      <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">{{ village2.village }} Pollutants</h3>
+      <ul>
+        {% for p in village2.pollutants %}
+        <li class="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700">
+          <span>{{ p.name }}</span>
+          <span class="{{ p.class }} text-white px-2 py-1 rounded-lg">{{ p.value }} ({{ p.status }})</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

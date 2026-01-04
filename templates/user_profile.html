@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQI Profile</title>
+  <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+</head>
+
+
+
+  {% extends "base.html" %}
+  {% block content %}
+<body class="bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 dark:from-gray-900 dark:to-gray-800 dark:text-gray-100 mt-15">
+
+
+  <div class="container mx-auto p-6 grid lg:grid-cols-3 gap-6">
+    <!-- AQI Section -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Village -->
+      <h2 class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 border-l-4 border-indigo-500 pl-3">
+        Village: {{ user.village }}
+      </h2>
+
+      <!-- AQI Summary Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Live AQI -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center transition transform hover:-translate-y-1 hover:shadow-xl">
+          <h5 class="text-lg font-medium flex items-center justify-center">
+            <i class="fas fa-broadcast-tower text-emerald-600 dark:text-emerald-400 mr-2"></i> Live AQI
+          </h5>
+          <p class="text-4xl font-bold mt-2 {{ 'text-green-500' if village_aqi_data[user.village] <= 50 else 'text-yellow-500' if village_aqi_data[user.village] <= 100 else 'text-orange-500' if village_aqi_data[user.village] <= 200 else 'text-red-600' }}">
+            {{ village_aqi_data[user.village] }}
+          </p>
+          <p class="text-gray-500 dark:text-gray-400">Today</p>
+        </div>
+
+        <!-- 7-Day Avg AQI -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center hover:-translate-y-1 hover:shadow-xl transition">
+          <h5 class="text-lg font-medium flex items-center justify-center">
+            <i class="fas fa-chart-line text-indigo-600 dark:text-indigo-400 mr-2"></i> 7-Day Avg AQI
+          </h5>
+          <p class="text-4xl font-bold mt-2 {% if avg_aqi_7_days <= 50 %}text-green-500{% elif avg_aqi_7_days <= 100 %}text-yellow-500{% elif avg_aqi_7_days <= 200 %}text-orange-500{% else %}text-red-600{% endif %}">
+            {{ avg_aqi_7_days }}
+          </p>
+          <p class="text-gray-500 dark:text-gray-400">
+            {% if avg_aqi_7_days <= 50 %} Good
+            {% elif avg_aqi_7_days <= 100 %} Moderate
+            {% elif avg_aqi_7_days <= 200 %} Unhealthy
+            {% else %} Very Unhealthy
+            {% endif %}
+          </p>
+        </div>
+
+        <!-- Worst AQI -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center hover:-translate-y-1 hover:shadow-xl transition">
+          <h5 class="text-lg font-medium flex items-center justify-center">
+            <i class="fas fa-exclamation-triangle text-amber-600 dark:text-amber-400 mr-2"></i> Worst AQI
+          </h5>
+          <p class="text-4xl font-bold mt-2 {% if worst_aqi <= 50 %}text-green-500{% elif worst_aqi <= 100 %}text-yellow-500{% elif worst_aqi <= 200 %}text-orange-500{% else %}text-red-600{% endif %}">
+            {{ worst_aqi }}
+          </p>
+          <p class="text-gray-500 dark:text-gray-400">Worst on {{ avg_3card_dict['worst_aqi'] }}</p>
+        </div>
+
+        <!-- Best AQI -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center hover:-translate-y-1 hover:shadow-xl transition">
+          <h5 class="text-lg font-medium flex items-center justify-center">
+            <i class="fas fa-trophy text-emerald-600 dark:text-emerald-400 mr-2"></i> Best AQI
+          </h5>
+          <p class="text-4xl font-bold mt-2 text-green-500">{{ best_aqi }}</p>
+          <p class="text-gray-500 dark:text-gray-400">Best on {{ avg_3card_dict['best_aqi'] }}</p>
+        </div>
+      </div>
+
+      <!-- Forecast -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <h4 class="text-xl font-semibold mb-4 flex items-center justify-center">
+          <i class="fas fa-calendar-alt text-indigo-600 dark:text-indigo-400 mr-2"></i> 7-Day Forecast
+        </h4>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
+          {% for i in range(7) %}
+          {% set aqi = passing_data[i]["value"] %}
+          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl shadow text-center hover:-translate-y-1 hover:shadow-lg transition">
+            <h6 class="font-medium">{{ passing_data[i]["date"] }}</h6>
+            <p class="text-2xl font-bold mt-2 {% if aqi <= 50 %}text-green-500{% elif aqi <= 100 %}text-yellow-500{% elif aqi <= 200 %}text-orange-500{% else %}text-red-600{% endif %}">
+              {{ aqi }}
+            </p>
+            <small class="text-gray-500 dark:text-gray-400">
+              {% if aqi <= 50 %} Good
+              {% elif aqi <= 100 %} Moderate
+              {% elif aqi <= 200 %} Unhealthy
+              {% else %} Very Unhealthy
+              {% endif %}
+            </small>
+            <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              PM2.5: {{ passing_pollutant[i]['value'] }}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+     <!-- Alerts -->
+<h2 class="text-xl font-semibold mt-6 flex items-center justify-center">
+  <i class="fas fa-bell text-red-500 dark:text-red-400 mr-2"></i> Alerts
+</h2>
+
+<div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 gap-4">
+
+  <!-- General Alerts -->
+  <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl shadow text-center">
+    <h3 class="font-medium text-indigo-600 dark:text-indigo-400 mb-2">General Alerts</h3>
+    <ul>
+      {% if health_alert %}
+        <li>{{ health_alert }}</li>
+      {% endif %}
+     
+    </ul>
+  </div>
+
+  <!-- Disease Alerts -->
+  <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-xl shadow text-center">
+    <h3 class="font-medium text-green-600 dark:text-green-400 mb-2">Disease Alerts</h3>
+    <ul>
+      {% if personalise %}
+        <li>{{ personalise }}</li>
+      {% else %}
+        <li>No disease alerts</li>
+      {% endif %}
+    </ul>
+  </div>
+
+  
+  <!-- Disease Alerts -->
+  
+  
+
+</div>
+
+
+    
+    </div>
+
+<!-- Profile Section -->
+<div class="flex flex-col items-center mt-12 profile-section bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center w-full max-w-xl mx-auto">
+
+  <!-- Profile Image -->
+  {% set aqi = village_aqi_data[user.village] %}
+  {% if aqi <= 50 %}
+      {% set img_src = url_for('static', filename='avtar/good.png') %}
+  {% elif aqi <= 100 %}
+      {% set img_src = url_for('static', filename='avtar/moderate.png') %}
+  {% elif aqi <= 150 %}
+      {% set img_src = url_for('static', filename='avtar/unhealthy.png') %}
+  {% elif aqi <= 200 %}
+      {% set img_src = url_for('static', filename='avtar/very_unhealthy.png') %}
+  {% else %}
+      {% set img_src = url_for('static', filename='avtar/hazardous.png') %}
+  {% endif %}
+
+  <img 
+    src="{{ img_src }}" 
+    alt="Profile" 
+    class="w-28 h-28 rounded-full mx-auto border-4 border-indigo-500 shadow-lg mb-4 transition-transform duration-300 hover:scale-105" 
+  />
+
+  <!-- User Info -->
+  <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-200">{{ user.name }}</h1>
+  <p class="text-gray-500 dark:text-gray-400">{{ user.email }}</p>
+
+  <!-- Details Box -->
+  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6 mt-6 text-left space-y-4 shadow-inner w-full">
+    <div class="flex items-center gap-2">
+      <span>👤</span> <span class="font-medium">Name:</span> <span>{{ user.name }}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span>📧</span> <span class="font-medium">Email:</span> <span>{{ user.email }}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span>📞</span> <span class="font-medium">Contact:</span> <span>{{ user.mobile }}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <span>🏫</span> <span class="font-medium">Village:</span> <span>{{ user.village }}</span>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="flex gap-4 mt-8 w-full">
+    <a href="/edit" class="flex-1">
+      <button class="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-700 py-2 rounded-lg shadow-md transition font-medium">
+        <i class="fas fa-edit"></i> Edit Profile
+      </button>
+    </a>
+  </div>
+
+  <!-- Notes Section -->
+  <div class="bg-gray-50 dark:bg-gray-700 p-5 rounded-xl shadow mt-10 w-full">
+    <h3 class="font-semibold text-green-600 dark:text-green-400 mb-4 text-lg">Your Past Notes with Same Air Quality</h3>
+    <ul class="space-y-2 text-left text-gray-700 dark:text-gray-300 list-disc list-inside">
+      {% for n in note %}
+        <li class="bg-white dark:bg-gray-600 p-2 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-500 transition">{{ n['note'] }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Add Note Button -->
+  <div class="flex gap-4 mt-8 w-full">
+    <a href="/note" class="flex-1">
+      <button class="w-full flex items-center justify-center gap-2 bg-green-600 text-white hover:bg-green-700 py-2 rounded-lg shadow-md transition font-medium">
+        <i class="fas fa-plus-circle"></i> Add Personalised Note
+      </button>
+    </a>
+  </div>
+
+</div>
+
+  </div>
+
+  {% endblock %}
