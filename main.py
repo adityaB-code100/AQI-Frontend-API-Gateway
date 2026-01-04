@@ -18,7 +18,7 @@ from get_note import get_notes_for_matching_aqi
 
 # ----------------- Flask App -----------------
 app = Flask(__name__)
-app.secret_key = "secretkey"
+app.secret_key = os.environ.get('SECRET_KEY', 'fallback-secret-key-for-development')
 mongo_uri = get_mongo_uri()
 client = MongoClient(mongo_uri)
 
@@ -400,5 +400,7 @@ def add_header(response):
 
 # ----------------- Run App -----------------
 if __name__ == "__main__":
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
 

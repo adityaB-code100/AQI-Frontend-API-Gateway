@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: aqi-frontend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT main:app
+    envVars:
+      - key: MONGO_URI
+        sync: false  # This will need to be set in the Render dashboard
+      - key: SECRET_KEY
+        sync: false  # This will need to be set in the Render dashboard
+      - key: PYTHON_PATH
+        value: .
